@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multicolor Text Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+            min-width: 120px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Rainbow colors for each button */
+        .buttons button:nth-child(1) { background: hsl(0, 100%, 50%); }     /* Red */
+        .buttons button:nth-child(2) { background: hsl(35, 100%, 50%); }   /* Orange */
+        .buttons button:nth-child(3) { background: hsl(25, 100%, 50%); }   /* Yellow */
+        .buttons button:nth-child(4) { background: hsl(120, 100%, 40%); }  /* Green */
+        .buttons button:nth-child(5) { background: hsl(180, 100%, 40%); }  /* Cyan */
+        .buttons button:nth-child(6) { background: hsl(240, 100%, 50%); }  /* Blue */
+        .buttons button:nth-child(7) { background: hsl(280, 100%, 50%); }  /* Purple */
+        .buttons button:nth-child(8) { background: hsl(320, 100%, 50%); }  /* Magenta */
+
+        /* Font size controls */
+        .font-size-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .font-size-controls label {
+            font-weight: bold;
+            color: #333;
+        }
+        #fontSizeSlider {
+            width: 200px;
+        }
+        #fontSizeValue {
+            min-width: 40px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        #output {
+            margin-top: 15px;
+            padding: 0.2in;
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 1.4;
+            text-align: left;
+            word-break: break-word;
+            background: #ffffff;
+            min-height: 100px;
+        }
+        #output span {
+            display: inline-block;
+        }
+        #output .line-div {
+            margin: 4px 0;
+        }
+
+        /* Modal styles - mobile friendly */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 350px;
+        }
+        #colorPreview {
+            width: 120px;
+            height: 120px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            margin: 20px auto;
+        }
+        .modal-buttons button {
+            min-width: 100px;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .modal-buttons button:first-child {
+            background: linear-gradient(to right, #ff0000);
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .modal-buttons button:first-child:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        #cancelBg {
+            background: hsl(0, 80%, 45%);
+        }
+        #cancelBg:hover {
+            background: hsl(0, 80%, 35%);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Multicolor Text Generator</h1>       
+
+        
+        <textarea id="inputText" placeholder="Enter your text here...&#10;Multiple lines supported."></textarea>
+        
+        <div class="buttons">
+            <button onclick="document.getElementById('fileInput').click()">Upload Text File</button>
+            <button onclick="addRainbowByText()">Convert by Text</button>
+            <button onclick="addRainbowByWord()">Convert by Word</button>
+            <button onclick="addRainbowByLine()">Convert by Line</button>
+            <button onclick="openBgModal()">Choose Background Color</button>
+            <button onclick="clearOutput()">Clear Output</button>
+            <button onclick="downloadImage()">Download PNG</button>
+            <button onclick="downloadDoc()">Download Word</button>
+        </div>
+        
+        <div class="font-size-controls">
+            <label for="fontSizeSlider">Font Size:</label>
+            <input type="range" id="fontSizeSlider" min="8" max="36" value="12" step="1">
+            <span id="fontSizeValue">12px</span>
+        </div>
+        
+        <input type="file" id="fileInput" accept=".txt,text/plain,.csv,.md" style="display:none;">
+        
+        <div id="output"></div>
+    </div>
+
+    <!-- Background Color Picker Modal -->
+    <div id="bgModal" class="modal">
+        <div class="modal-content">
+            <h3>Choose Background Color</h3>
+            <input type="color" id="modalColorPicker" value="#ffffff">
+            <div id="colorPreview"></div>
+            <div class="modal-buttons">
+                <button onclick="applyBgColor()">OK</button>
+                <button id="cancelBg" onclick="closeBgModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentBgHex = '#ffffff';
+        let lastMode = null;
+
+        // Initialize font size slider
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        
+        fontSizeSlider.addEventListener('input', function() {
+            fontSizeValue.textContent = this.value + 'px';
+            updateOutputFontSize(this.value);
+        });
+
+        function updateOutputFontSize(size) {
+            const output = document.getElementById('output');
+            output.style.fontSize = size + 'px';
+        }
+
+        // File upload handler
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('inputText').value = event.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Modal functions
+        function openBgModal() {
+            document.getElementById('modalColorPicker').value = currentBgHex;
+            document.getElementById('colorPreview').style.backgroundColor = currentBgHex;
+            document.getElementById('bgModal').style.display = 'flex';
+            document.getElementById('modalColorPicker').addEventListener('input', updatePreview);
+        }
+
+        function closeBgModal() {
+            document.getElementById('bgModal').style.display = 'none';
+            document.getElementById('modalColorPicker').removeEventListener('input', updatePreview);
+        }
+
+        function updatePreview() {
+            const color = document.getElementById('modalColorPicker').value;
+            document.getElementById('colorPreview').style.backgroundColor = color;
+        }
+
+        function applyBgColor() {
+            const color = document.getElementById('modalColorPicker').value;
+            setBackground(color);
+            closeBgModal();
+        }
+
+        function setBackground(color) {
+            currentBgHex = color;
+            document.getElementById('output').style.backgroundColor = color;
+
+            if (lastMode && document.getElementById('inputText').value.trim() !== '') {
+                if (lastMode === 'text') addRainbowByText();
+                else if (lastMode === 'word') addRainbowByWord();
+                else if (lastMode === 'line') addRainbowByLine();
+            }
+        }
+
+        function hexToRgb(hex) {
+            if (hex.startsWith('#')) hex = hex.slice(1);
+            if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+            return {
+                r: parseInt(hex.slice(0, 2), 16),
+                g: parseInt(hex.slice(2, 4), 16),
+                b: parseInt(hex.slice(4, 6), 16)
+            };
+        }
+
+        function isDarkBackground(hex) {
+            const { r, g, b } = hexToRgb(hex);
+            return (r + g + b) / 3 < 128;
+        }
+
+        function getColorParams() {
+            const dark = isDarkBackground(currentBgHex);
+            return {
+                saturation: dark ? 70 : 100,
+                lightness: dark ? 75 : 50
+            };
+        }
+
+        function addRainbowByText() {
+            const input = document.getElementById('inputText').value;
+            const output = document.getElementById('output');
+            
+            if (input.trim() === '') {
+                alert('Please enter some text first.');
+                return;
+            }
+            
+            output.innerHTML = '';
+            lastMode = 'text';
+            
+            const { saturation, lightness } = getColorParams();
+            
+            const block = document.createElement('div');
+            
+            const chars = [...input];
+            let hue = Math.floor(Math.random() * 360);
+            const step = 8;
+            
+            chars.forEach(char => {
+                if (char === '\n') {
+                    block.appendChild(document.createElement('br'));
+                } else {
+                    const span = document.createElement('span');
+                    span.textContent = char === ' ' ? '\u00A0' : char;
+                    span.style.color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                    block.appendChild(span);
+                    hue = (hue + step) % 360;
+                }
+            });
+            
+            output.appendChild(block);
+        }
+        
+        function addRainbowByWord() {
+            const input = document.getElementById('inputText').value;
+            const output = document.getElementById('output');
+            
+            if (input.trim() === '') {
+                alert('Please enter some text first.');
+                return;
+            }
+            
+            output.innerHTML = '';
+            lastMode = 'word';
+            
+            const { saturation, lightness } = getColorParams();
+            
+            const block = document.createElement('div');
+            
+            const chars = [...input];
+            let hue = Math.floor(Math.random() * 360);
+            const wordStep = 30;
+            let prevWasSpace = true;
+            
+            chars.forEach(char => {
+                if (char === '\n') {
+                    block.appendChild(document.createElement('br'));
+                    prevWasSpace = true;
+                } else if (/\s/.test(char)) {
+                    const span = document.createElement('span');
+                    span.innerHTML = '&nbsp;';
+                    block.appendChild(span);
+                    prevWasSpace = true;
+                } else {
+                    if (prevWasSpace) {
+                        hue = (hue + wordStep) % 360;
+                        prevWasSpace = false;
+                    }
+                    const span = document.createElement('span');
+                    span.textContent = char;
+                    span.style.color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                    block.appendChild(span);
+                }
+            });
+            
+            output.appendChild(block);
+        }
+        
+        function addRainbowByLine() {
+            const input = document.getElementById('inputText').value;
+            const output = document.getElementById('output');
+            
+            if (input.trim() === '') {
+                alert('Please enter some text first.');
+                return;
+            }
+            
+            output.innerHTML = '';
+            lastMode = 'line';
+            
+            const { saturation, lightness } = getColorParams();
+            
+            const block = document.createElement('div');
+            
+            const lines = input.split('\n');
+            let hue = Math.floor(Math.random() * 360);
+            const lineStep = 25;
+            
+            lines.forEach(line => {
+                if (line === '') {
+                    block.appendChild(document.createElement('br'));
+                } else {
+                    const lineDiv = document.createElement('div');
+                    lineDiv.className = 'line-div';
+                    const chars = [...line];
+                    
+                    chars.forEach(char => {
+                        const span = document.createElement('span');
+                        span.textContent = char === ' ' ? '\u00A0' : char;
+                        span.style.color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                        lineDiv.appendChild(span);
+                    });
+                    
+                    block.appendChild(lineDiv);
+                    hue = (hue + lineStep) % 360;
+                }
+            });
+            
+            output.appendChild(block);
+        }
+        
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+            document.getElementById('inputText').value = '';
+            lastMode = null;
+        }
+        
+        function downloadImage() {
+            const output = document.getElementById('output');
+            
+            if (output.innerHTML.trim() === '') {
+                alert('Nothing to download! Add some text first.');
+                return;
+            }
+            
+            html2canvas(output, {
+                scale: 2,
+                useCORS: true,
+                logging: false
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'multicolor-text.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        function downloadDoc() {
+            const output = document.getElementById('output');
+            const currentFontSize = document.getElementById('fontSizeSlider').value;
+            
+            if (output.innerHTML.trim() === '') {
+                alert('Nothing to download! Add some text first.');
+                return;
+            }
+            
+            const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Multicolor Text</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0.2in;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+        }
+        .page {
+            background: ${currentBgHex};
+            font-size: ${currentFontSize}px;
+            font-weight: bold;
+            line-height: 1.4;
+            text-align: left;
+            word-break: break-word;
+            padding: 0.3in;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        ${output.innerHTML}
+    </div>
+</body>
+</html>
+            `;
+            
+            const blob = new Blob([htmlContent], { type: 'application/msword' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'multicolor-text.doc';
+            link.click();
+        }
+    </script>
+</body>
+</html>
